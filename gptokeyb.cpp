@@ -1039,7 +1039,8 @@ int main(int argc, char* argv[])
   }
 
   // Create fake input device (not needed in kill mode)
-  //if (!kill_mode) {  initialise device, now that kill mode will work with config & xbox modes
+  //if (!kill_mode) {  
+  if (config_mode || xbox360_mode) { // initialise device, even in kill mode, now that kill mode will work with config & xbox modes
     uinp_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
     if (uinp_fd < 0) {
       printf("Unable to open /dev/uinput\n");
@@ -1071,7 +1072,7 @@ int main(int argc, char* argv[])
       printf("Unable to create UINPUT device.");
       return -1;
     }
-  //}
+  }
 
   if (const char* db_file = SDL_getenv("SDL_GAMECONTROLLERCONFIG_FILE")) {
     SDL_GameControllerAddMappingsFromFile(db_file);
