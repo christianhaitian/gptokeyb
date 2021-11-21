@@ -238,6 +238,8 @@ short char_to_keycode(const char* str)
     keycode = KEY_CAPSLOCK;
   else if (strcmp(str, "tab") == 0)
     keycode = KEY_TAB;
+  else if (strcmp(str, "pause") == 0)
+    keycode = KEY_PAUSE;
 
   // normal keyboard
   else if (strcmp(str, "a") == 0)
