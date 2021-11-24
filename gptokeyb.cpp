@@ -240,6 +240,8 @@ short char_to_keycode(const char* str)
     keycode = KEY_TAB;
   else if (strcmp(str, "pause") == 0)
     keycode = KEY_PAUSE;
+  else if (strcmp(str, "menu") == 0)
+    keycode = KEY_MENU;
 
   // normal keyboard
   else if (strcmp(str, "a") == 0)
