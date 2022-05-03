@@ -101,6 +101,7 @@ std::vector<config_option> parseConfigFile(const char* path)
 static int uinp_fd = -1;
 struct uinput_user_dev uidev;
 
+bool use_pgrep = false; //use pgrep instead of pidof to get the PID of the process to kill
 bool kill_mode = false;
 bool sudo_kill = false; //allow sudo kill instead of killall for non-emuelec systems
 bool openbor_mode = false;
@@ -623,6 +624,38 @@ void setupFakeXbox360Device(uinput_user_dev& device, int fd)
   UINPUT_SET_ABS_P(&device, ABS_RZ, 0, 255, 0, 0);
 }
 
+void handleKillApplication()
+{
+  if ((kill_mode) && (state.start_pressed && state.hotkey_pressed)) {
+    if (! sudo_kill) {
+      //printf("Killing: %s\n", AppToKill);
+      if (state.start_jsdevice == state.hotkey_jsdevice) {
+        system((" killall  '" + std::string(AppToKill) + "' ").c_str());
+        system("show_splash.sh exit");
+        sleep(3);
+        if (system((" pgrep '" + std::string(AppToKill) + "' ").c_str()) == 0) {
+          printf("Forcefully Killing: %s\n", AppToKill);
+          system((" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
+        }
+        exit(0);
+      }
+    } else {
+      //printf("Killing: %s, use_pgrep: %s\n", AppToKill, (use_pgrep ? "true" : "false"));
+      if (state.start_jsdevice == state.hotkey_jsdevice) {
+        std::string pid_app = "$(pidof '" + std::string(AppToKill) + "')";
+        if (use_pgrep) {
+          pid_app = "$(pgrep '" + std::string(AppToKill) + "')";
+        }
+        //printf("pid_app: %s\n", pid_app.c_str());
+        //fflush(stdout);
+        system((" kill -9 " + pid_app).c_str());
+        sleep(3);
+        exit(0);
+      }
+    } // sudo kill
+  } //kill mode
+}
+
 bool handleEvent(const SDL_Event& event)
 {
   switch (event.type) {
@@ -709,31 +742,9 @@ bool handleEvent(const SDL_Event& event)
             emitAxisMotion(ABS_HAT0X, is_pressed ? 1 : 0);
             break;
         }
-         if ((kill_mode) && (state.start_pressed && state.hotkey_pressed)) {
-          if (! sudo_kill) {
-             // printf("Killing: %s\n", AppToKill);
-             if (state.start_jsdevice == state.hotkey_jsdevice) {
-                system((" killall  '" + std::string(AppToKill) + "' ").c_str());
-                system("show_splash.sh exit");
-               sleep(3);
-               if (
-                 system((" pgrep '" + std::string(AppToKill) + "' ").c_str()) ==
-                 0) {
-                 printf("Forcefully Killing: %s\n", AppToKill);
-                 system(
-                   (" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
-               }
-            exit(0); 
-            }             
-          } else {
-             if (state.start_jsdevice == state.hotkey_jsdevice) {
-                system((" kill -9 $(pidof '" + std::string(AppToKill) + "') ").c_str());
-               sleep(3);
-               exit(0);
-             }
-           } // sudo kill
-        } //kill mode
-       
+
+        handleKillApplication();
+
       } else {
         // Config / default mode
         switch (event.cbutton.button) {
@@ -813,30 +824,9 @@ bool handleEvent(const SDL_Event& event)
             };
             break;
         }
-        if ((kill_mode) && (state.start_pressed && state.hotkey_pressed)) {
-          if (! sudo_kill) {
-             // printf("Killing: %s\n", AppToKill);
-             if (state.start_jsdevice == state.hotkey_jsdevice) {
-                system((" killall  '" + std::string(AppToKill) + "' ").c_str());
-                system("show_splash.sh exit");
-               sleep(3);
-               if (
-                 system((" pgrep '" + std::string(AppToKill) + "' ").c_str()) ==
-                 0) {
-                 printf("Forcefully Killing: %s\n", AppToKill);
-                 system(
-                   (" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
-               }
-            exit(0); 
-            }             
-          } else {
-             if (state.start_jsdevice == state.hotkey_jsdevice) {
-                system((" kill -9 $(pidof '" + std::string(AppToKill) + "') ").c_str());
-               sleep(3);
-               exit(0);
-             }
-           } // sudo kill
-        } //kill mode
+
+        handleKillApplication();
+
       } //xbox or config/default
     } break;
 
@@ -1011,7 +1001,7 @@ int main(int argc, char* argv[])
   }
 
   for( int ii = 1; ii < argc; ii++ )
-  {      
+  {
     if (strcmp(argv[ii], "xbox360") == 0) {
       xbox360_mode = true;
     } else if (strcmp(argv[ii], "-c") == 0) {
@@ -1038,7 +1028,8 @@ int main(int argc, char* argv[])
         sudo_kill = true;
         AppToKill = argv[++ii];
       }
-      
+    } else if ((strcmp(argv[ii], "-pgrep") == 0)) {
+      use_pgrep = true;
     }
   }
 
