@@ -642,10 +642,13 @@ void handleKillApplication()
     } else {
       //printf("Killing: %s, use_pgrep: %s\n", AppToKill, (use_pgrep ? "true" : "false"));
       if (state.start_jsdevice == state.hotkey_jsdevice) {
-        std::string pid_app = "$(pidof '" + std::string(AppToKill) + "')";
+        std::string pid_app;
         if (use_pgrep) {
-          pid_app = "$(pgrep '" + std::string(AppToKill) + "')";
+          pid_app.append("$(pgrep '");
+        } else {
+          pid_app.append("$(pidof '");
         }
+        pid_app.append(std::string(AppToKill) + "')");
         //printf("pid_app: %s\n", pid_app.c_str());
         //fflush(stdout);
         system((" kill -9 " + pid_app).c_str());
