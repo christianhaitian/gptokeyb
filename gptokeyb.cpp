@@ -141,14 +141,14 @@ struct
   short back = KEY_ESC;
   short start = KEY_ENTER;
   short guide = KEY_ENTER;
-  short a = KEY_X;
+  short a = KEY_ENTER;
   short b = KEY_Z;
   short x = KEY_C;
   short y = KEY_A;
-  short l1 = KEY_RIGHTSHIFT;
+  short l1 = KEY_PAGEUP;
   short l2 = KEY_HOME;
   short l3 = BTN_LEFT;
-  short r1 = KEY_LEFTSHIFT;
+  short r1 = KEY_PAGEDOWN;
   short r2 = KEY_END;
   short r3 = BTN_RIGHT;
   short up = KEY_UP;
@@ -158,10 +158,10 @@ struct
 
   bool left_analog_as_mouse = false;
   bool right_analog_as_mouse = false;
-  short left_analog_up = KEY_W;
-  short left_analog_down = KEY_S;
-  short left_analog_left = KEY_A;
-  short left_analog_right = KEY_D;
+  short left_analog_up = KEY_UP;
+  short left_analog_down = KEY_DOWN;
+  short left_analog_left = KEY_LEFT;
+  short left_analog_right = KEY_RIGHT;
   short right_analog_up = KEY_END;
   short right_analog_down = KEY_HOME;
   short right_analog_left = KEY_LEFT;
@@ -713,22 +713,24 @@ bool handleEvent(const SDL_Event& event)
           if (! sudo_kill) {
              // printf("Killing: %s\n", AppToKill);
              if (state.start_jsdevice == state.hotkey_jsdevice) {
+                system((" echo 1 "));
+                sleep(1);
                 system((" killall  '" + std::string(AppToKill) + "' ").c_str());
-                system("show_splash.sh exit");
-               sleep(3);
                if (
                  system((" pgrep '" + std::string(AppToKill) + "' ").c_str()) ==
                  0) {
                  printf("Forcefully Killing: %s\n", AppToKill);
-                 system(
-                   (" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
+                 system((" echo 1 "));
+                 sleep(1);
+                 system((" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
                }
             exit(0); 
             }             
           } else {
              if (state.start_jsdevice == state.hotkey_jsdevice) {
+                system((" echo 1 "));
+                sleep(1);
                 system((" kill -9 $(pidof '" + std::string(AppToKill) + "') ").c_str());
-               sleep(3);
                exit(0);
              }
            } // sudo kill
@@ -817,23 +819,25 @@ bool handleEvent(const SDL_Event& event)
           if (! sudo_kill) {
              // printf("Killing: %s\n", AppToKill);
              if (state.start_jsdevice == state.hotkey_jsdevice) {
-                system((" killall  '" + std::string(AppToKill) + "' ").c_str());
-                system("show_splash.sh exit");
-               sleep(3);
+               system((" echo 1 "));
+               sleep(1);
+               system((" killall  '" + std::string(AppToKill) + "' ").c_str());
                if (
                  system((" pgrep '" + std::string(AppToKill) + "' ").c_str()) ==
                  0) {
                  printf("Forcefully Killing: %s\n", AppToKill);
-                 system(
-                   (" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
+                 system((" echo 1 "));
+                 sleep(1);
+                 system((" killall  -9 '" + std::string(AppToKill) + "' ").c_str());
                }
             exit(0); 
             }             
           } else {
              if (state.start_jsdevice == state.hotkey_jsdevice) {
+                system((" echo 1 "));
+                sleep(1);
                 system((" kill -9 $(pidof '" + std::string(AppToKill) + "') ").c_str());
-               sleep(3);
-               exit(0);
+                exit(0);
              }
            } // sudo kill
         } //kill mode
@@ -997,7 +1001,7 @@ int main(int argc, char* argv[])
   const char* config_file = nullptr;
 
   config_mode = true;
-  config_file = "/emuelec/configs/gptokeyb/default.gptk";
+  config_file = "/opt/inttools/keys.gptk";
 
   // Add hotkey environment variable if available
   if (char* env_hotkey = SDL_getenv("HOTKEY")) {
@@ -1020,7 +1024,7 @@ int main(int argc, char* argv[])
         config_file = argv[++ii];
       } else {
         config_mode = true;
-        config_file = "/emuelec/configs/gptokeyb/default.gptk";
+        config_file = "/opt/inttools/keys.gptk";
       }
     } else if (strcmp(argv[ii], "-hotkey") == 0) {
       if (ii + 1 < argc) {
@@ -1114,7 +1118,7 @@ int main(int argc, char* argv[])
     * Give userspace some time to read the events before we destroy the
     * device with UI_DEV_DESTROY.
     */
-  sleep(1);
+  sleep(3);
 
   /* Clean up */
   ioctl(uinp_fd, UI_DEV_DESTROY);
